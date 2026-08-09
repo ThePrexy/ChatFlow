@@ -21,7 +21,97 @@
             padding: 20px;
         }
 
-        .container {
+        /* Auth Screen */
+        .auth-screen {
+            display: flex;
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .auth-screen.hidden {
+            display: none;
+        }
+
+        .auth-container {
+            width: 100%;
+            padding: 50px 40px;
+            text-align: center;
+        }
+
+        .auth-logo {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .auth-title {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .auth-subtitle {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 40px;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .auth-form input {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .auth-form input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .auth-btn {
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .auth-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .auth-toggle {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .auth-toggle button {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        /* Chat Screen */
+        .chat-screen {
             display: flex;
             width: 100%;
             max-width: 1200px;
@@ -30,6 +120,10 @@
             border-radius: 10px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             overflow: hidden;
+        }
+
+        .chat-screen.hidden {
+            display: none;
         }
 
         .sidebar {
@@ -45,9 +139,8 @@
             padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            font-size: 18px;
-            font-weight: bold;
             text-align: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         }
 
         .sidebar-header .logo {
@@ -67,74 +160,92 @@
             font-weight: normal;
         }
 
-        .user-section {
+        .user-info {
             padding: 15px;
             border-bottom: 1px solid #ddd;
+            background: #fff;
         }
 
-        .user-section label {
-            display: block;
-            font-size: 12px;
+        .user-info-label {
+            font-size: 11px;
             color: #666;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             font-weight: bold;
+            text-transform: uppercase;
         }
 
-        .user-section input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+        .user-info-name {
             font-size: 14px;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
 
-        .conversations-title {
+        .logout-btn {
+            width: 100%;
+            padding: 8px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: #ff5252;
+        }
+
+        .contacts-title {
             padding: 15px 20px;
             font-size: 12px;
             color: #666;
             font-weight: bold;
             text-transform: uppercase;
+            background: #fff;
         }
 
-        .conversations-list {
+        .contacts-list {
             flex: 1;
             overflow-y: auto;
         }
 
-        .conversation-item {
+        .contact-item {
             padding: 12px 15px;
             cursor: pointer;
             border-left: 3px solid transparent;
             transition: all 0.2s;
             color: #333;
             font-size: 14px;
+            border-bottom: 1px solid #f0f0f0;
         }
 
-        .conversation-item:hover {
+        .contact-item:hover {
             background: #e8e8e8;
         }
 
-        .conversation-item.active {
+        .contact-item.active {
             background: #e3f2fd;
             border-left-color: #667eea;
             font-weight: bold;
         }
 
-        .new-conversation-btn {
-            margin: 15px;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            transition: transform 0.2s;
+        .contact-item .status {
+            font-size: 10px;
+            color: #999;
+            margin-top: 3px;
         }
 
-        .new-conversation-btn:hover {
-            transform: scale(1.02);
+        .contact-item .status.online::before {
+            content: "● ";
+            color: #4caf50;
+        }
+
+        .contact-item .status.offline::before {
+            content: "● ";
+            color: #999;
         }
 
         .main-content {
@@ -157,28 +268,13 @@
             font-size: 18px;
         }
 
-        .chat-header .delete-btn {
-            background: #ff6b6b;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: background 0.2s;
-        }
-
-        .chat-header .delete-btn:hover {
-            background: #ff5252;
-        }
-
         .messages-container {
             flex: 1;
             overflow-y: auto;
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
         }
 
         .messages-container.empty {
@@ -191,6 +287,7 @@
             display: flex;
             gap: 10px;
             animation: slideIn 0.3s ease;
+            word-wrap: break-word;
         }
 
         @keyframes slideIn {
@@ -208,28 +305,29 @@
             justify-content: flex-end;
         }
 
-        .message-content {
+        .message-bubble {
             max-width: 60%;
             padding: 12px 15px;
             border-radius: 10px;
             word-wrap: break-word;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
         }
 
-        .message.other .message-content {
+        .message.other .message-bubble {
             background: #e8e8e8;
             color: #333;
         }
 
-        .message.own .message-content {
+        .message.own .message-bubble {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
 
         .message-time {
-            font-size: 12px;
+            font-size: 11px;
             color: #999;
-            align-self: flex-end;
-            margin-top: 5px;
+            margin-top: 3px;
         }
 
         .message.own .message-time {
@@ -279,7 +377,7 @@
             transform: scale(0.98);
         }
 
-        .no-conversation {
+        .no-contact {
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -289,114 +387,13 @@
             text-align: center;
         }
 
-        .no-conversation p {
+        .no-contact p {
             font-size: 16px;
             margin-bottom: 10px;
         }
 
-        .no-conversation small {
+        .no-contact small {
             font-size: 12px;
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            animation: fadeIn 0.2s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal.active {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .modal-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        .modal-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-            margin-bottom: 20px;
-            transition: border-color 0.2s;
-        }
-
-        .modal-input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-        }
-
-        .modal-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            transition: all 0.2s;
-        }
-
-        .modal-btn-cancel {
-            background: #f0f0f0;
-            color: #333;
-        }
-
-        .modal-btn-cancel:hover {
-            background: #e0e0e0;
-        }
-
-        .modal-btn-confirm {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .modal-btn-confirm:hover {
-            transform: scale(1.02);
         }
 
         @media (max-width: 768px) {
@@ -408,52 +405,67 @@
                 border-bottom: 1px solid #ddd;
             }
 
-            .container {
+            .chat-screen {
                 flex-direction: column;
             }
 
-            .message-content {
+            .message-bubble {
                 max-width: 80%;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Auth Screen -->
+    <div class="auth-screen" id="authScreen">
+        <div class="auth-container">
+            <div class="auth-logo">💬</div>
+            <div class="auth-title" id="authTitle">Bienvenido a ChatFlow</div>
+            <div class="auth-subtitle">Sistema de Mensajería</div>
+
+            <div class="auth-form" id="authForm">
+                <input type="text" id="authUsername" placeholder="Usuario" />
+                <input type="password" id="authPassword" placeholder="Contraseña" />
+                <button class="auth-btn" onclick="handleAuth()">Iniciar Sesión</button>
+            </div>
+
+            <div class="auth-toggle">
+                ¿No tienes cuenta? <button onclick="toggleAuthMode()">Crear una</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Screen -->
+    <div class="chat-screen hidden" id="chatScreen">
         <!-- Sidebar -->
         <div class="sidebar">
+        <!-- Sidebar -->
             <div class="sidebar-header">
                 <div class="logo">💬</div>
                 <div class="title">ChatFlow</div>
                 <div class="subtitle">Chats & Conversations</div>
             </div>
-            
-            <div class="user-section">
-                <label for="username">Tu usuario:</label>
-                <input type="text" id="username" placeholder="Ingresa tu nombre" value="Tú">
+
+            <div class="user-info">
+                <div class="user-info-label">Conectado como:</div>
+                <div class="user-info-name" id="currentUserDisplay">Usuario</div>
+                <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
             </div>
 
-            <div class="conversations-title">Conversaciones</div>
-            <div class="conversations-list" id="conversationsList"></div>
-
-            <button class="new-conversation-btn" onclick="createNewConversation()">
-                + Nueva Conversación
-            </button>
+            <div class="contacts-title">Contactos</div>
+            <div class="contacts-list" id="contactsList"></div>
         </div>
 
         <!-- Main Chat Area -->
         <div class="main-content">
             <div class="chat-header">
-                <h2 id="chatTitle">Selecciona una conversación</h2>
-                <button class="delete-btn" id="deleteBtn" onclick="deleteCurrentConversation()" style="display: none;">
-                    Eliminar
-                </button>
+                <h2 id="chatTitle">Selecciona un contacto</h2>
             </div>
 
             <div class="messages-container empty" id="messagesContainer">
-                <div class="no-conversation">
-                    <p>📭 No hay mensajes</p>
-                    <small>Crea una nueva conversación para comenzar</small>
+                <div class="no-contact">
+                    <p>👋 Selecciona un contacto</p>
+                    <small>Elige una persona de la lista para comenzar a chatear</small>
                 </div>
             </div>
 
@@ -465,27 +477,6 @@
                     onkeypress="handleKeyPress(event)"
                 >
                 <button onclick="sendMessage()">Enviar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal for new conversation -->
-    <div class="modal" id="newConversationModal">
-        <div class="modal-content">
-            <div style="text-align: center; margin-bottom: 15px;">
-                <div style="font-size: 28px; margin-bottom: 8px;">💬</div>
-                <div class="modal-title">Nueva Conversación en ChatFlow</div>
-            </div>
-            <input 
-                type="text" 
-                id="conversationNameInput" 
-                class="modal-input" 
-                placeholder="Nombre de la conversación"
-                onkeypress="handleModalKeyPress(event)"
-            >
-            <div class="modal-buttons">
-                <button class="modal-btn modal-btn-cancel" onclick="closeNewConversationModal()">Cancelar</button>
-                <button class="modal-btn modal-btn-confirm" onclick="confirmNewConversation()">Crear</button>
             </div>
         </div>
     </div>
