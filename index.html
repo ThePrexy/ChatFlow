@@ -224,6 +224,47 @@
             background: #fff;
         }
 
+        .contact-search {
+            padding: 15px 20px;
+            background: #fafbff;
+            border-bottom: 1px solid #eee;
+        }
+
+        .contact-search label {
+            display: block;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .contact-search-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .contact-search-row input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .contact-search-row button {
+            padding: 10px 14px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .contact-search-row button:hover {
+            background: #5568c9;
+        }
+
         .contacts-list {
             flex: 1;
             overflow-y: auto;
@@ -476,6 +517,13 @@
             </div>
 
             <div class="contacts-title">Contactos</div>
+            <div class="contact-search">
+                <label for="contactSearchInput">Buscar usuario por nombre</label>
+                <div class="contact-search-row">
+                    <input type="text" id="contactSearchInput" placeholder="Nombre de usuario" />
+                    <button onclick="handleAddContact()">Agregar</button>
+                </div>
+            </div>
             <div class="contacts-list" id="contactsList"></div>
         </div>
 
@@ -561,7 +609,8 @@
         function checkLoggedIn() {
             const saved = localStorage.getItem(CURRENT_USER_KEY);
             if (saved) {
-                currentUser = JSON.parse(saved);
+                const storedUser = JSON.parse(saved);
+                currentUser = users.find(u => u.id === storedUser.id) || storedUser;
                 showChatScreen();
             } else {
                 showAuthScreen();
@@ -605,7 +654,7 @@
                 return;
             }
 
-            const newUser = { id: Date.now().toString(), username, password };
+            const newUser = { id: Date.now().toString(), username, password, contacts: [] };
             users.push(newUser);
             saveUsers();
             currentUser = newUser;
@@ -625,6 +674,41 @@
             currentUser = user;
             localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
             showChatScreen();
+        }
+
+        function handleAddContact() {
+            const query = document.getElementById('contactSearchInput').value.trim();
+            if (!query) {
+                alert('Ingresa el nombre de usuario que deseas agregar');
+                return;
+            }
+
+            const target = users.find(u => u.username.toLowerCase() === query.toLowerCase());
+            if (!target) {
+                alert('No existe ningún usuario con ese nombre.');
+                return;
+            }
+
+            if (target.id === currentUser.id) {
+                alert('No puedes agregarte a ti mismo.');
+                return;
+            }
+
+            if (currentUser.contacts.includes(target.id)) {
+                alert('Este usuario ya está en tus contactos.');
+                return;
+            }
+
+            currentUser.contacts.push(target.id);
+            target.contacts = target.contacts || [];
+            if (!target.contacts.includes(currentUser.id)) {
+                target.contacts.push(currentUser.id);
+            }
+
+            saveUsers();
+            document.getElementById('contactSearchInput').value = '';
+            renderContacts();
+            alert(`Usuario ${target.username} agregado correctamente.`);
         }
 
         // Logout
@@ -661,19 +745,33 @@
             const list = document.getElementById('contactsList');
             list.innerHTML = '';
 
-            const otherUsers = users.filter(user => user.id !== currentUser.id);
-            if (otherUsers.length === 0) {
+            if (!currentUser || !Array.isArray(currentUser.contacts) || currentUser.contacts.length === 0) {
                 const placeholder = document.createElement('div');
                 placeholder.className = 'contact-item';
                 placeholder.style.cursor = 'default';
                 placeholder.style.background = '#f7f7f7';
                 placeholder.style.color = '#999';
-                placeholder.textContent = 'No hay otros usuarios registrados. Crea otra cuenta o inicia sesión con otro usuario.';
+                placeholder.textContent = 'No tienes contactos aún. Busca un usuario y agrégalo para empezar a chatear.';
                 list.appendChild(placeholder);
                 return;
             }
 
-            otherUsers.forEach(user => {
+            const contactUsers = currentUser.contacts
+                .map(id => users.find(user => user.id === id))
+                .filter(Boolean);
+
+            if (contactUsers.length === 0) {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'contact-item';
+                placeholder.style.cursor = 'default';
+                placeholder.style.background = '#f7f7f7';
+                placeholder.style.color = '#999';
+                placeholder.textContent = 'Tus contactos actualmente no están disponibles. Verifica que los usuarios sigan registrados.';
+                list.appendChild(placeholder);
+                return;
+            }
+
+            contactUsers.forEach(user => {
                 const item = document.createElement('div');
                 item.className = 'contact-item';
                 if (currentChatWith && currentChatWith.id === user.id) {
