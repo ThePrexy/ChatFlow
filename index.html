@@ -482,137 +482,206 @@
     </div>
 
     <script>
-        const USERNAME_KEY = 'username';
-        const CONVERSATIONS_KEY = 'conversations';
+        // Storage keys
+        const USERS_KEY = 'chatflow_users';
+        const CONVERSATIONS_KEY = 'chatflow_conversations';
+        const CURRENT_USER_KEY = 'chatflow_current_user';
 
         // State
+        let users = [];
         let conversations = [];
-        let currentConversationId = null;
-        let currentUsername = 'Tú';
+        let currentUser = null;
+        let currentChatWith = null;
+        let authMode = 'login';
 
         // Initialize
         function init() {
-            loadUsername();
+            loadUsers();
             loadConversations();
-            renderConversations();
-            
-            document.getElementById('username').addEventListener('change', (e) => {
-                currentUsername = e.target.value || 'Tú';
-                localStorage.setItem(USERNAME_KEY, currentUsername);
-            });
+            checkLoggedIn();
         }
 
-        // Load username
-        function loadUsername() {
-            const saved = localStorage.getItem(USERNAME_KEY);
+        // Load users from storage
+        function loadUsers() {
+            const saved = localStorage.getItem(USERS_KEY);
             if (saved) {
-                currentUsername = saved;
-                document.getElementById('username').value = currentUsername;
+                users = JSON.parse(saved);
+            } else {
+                users = [
+                    { id: '1', username: 'Alice', password: 'alice123' },
+                    { id: '2', username: 'Bob', password: 'bob123' },
+                    { id: '3', username: 'Carlos', password: 'carlos123' }
+                ];
+                saveUsers();
             }
         }
 
-        // Load conversations from storage
+        // Save users
+        function saveUsers() {
+            localStorage.setItem(USERS_KEY, JSON.stringify(users));
+        }
+
+        // Load conversations
         function loadConversations() {
             const saved = localStorage.getItem(CONVERSATIONS_KEY);
-            if (saved) {
-                conversations = JSON.parse(saved);
-            } else {
-                // Create default conversation
-                conversations = [
-                    {
-                        id: generateId(),
-                        title: 'General',
-                        messages: []
-                    }
-                ];
-                saveConversations();
-            }
+            conversations = saved ? JSON.parse(saved) : [];
         }
 
-        // Save conversations to storage
+        // Save conversations
         function saveConversations() {
             localStorage.setItem(CONVERSATIONS_KEY, JSON.stringify(conversations));
         }
 
-        // Generate unique ID
-        function generateId() {
-            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        // Check if user is logged in
+        function checkLoggedIn() {
+            const saved = localStorage.getItem(CURRENT_USER_KEY);
+            if (saved) {
+                currentUser = JSON.parse(saved);
+                showChatScreen();
+            } else {
+                showAuthScreen();
+            }
         }
 
-        // Create new conversation
-        function createNewConversation() {
-            document.getElementById('conversationNameInput').value = '';
-            document.getElementById('newConversationModal').classList.add('active');
-            document.getElementById('conversationNameInput').focus();
+        // Toggle between login and register
+        function toggleAuthMode() {
+            authMode = authMode === 'login' ? 'register' : 'login';
+            document.getElementById('authTitle').textContent = 
+                authMode === 'login' ? 'Bienvenido a ChatFlow' : 'Crear Nueva Cuenta';
+            const btn = document.querySelector('.auth-form button');
+            btn.textContent = authMode === 'login' ? 'Iniciar Sesión' : 'Registrarse';
+            const toggle = document.querySelector('.auth-toggle');
+            toggle.innerHTML = authMode === 'login'
+                ? '¿No tienes cuenta? <button onclick="toggleAuthMode()">Crear una</button>'
+                : '¿Ya tienes cuenta? <button onclick="toggleAuthMode()">Inicia sesión</button>';
         }
 
-        // Close modal
-        function closeNewConversationModal() {
-            document.getElementById('newConversationModal').classList.remove('active');
-        }
+        // Handle authentication
+        function handleAuth() {
+            const username = document.getElementById('authUsername').value.trim();
+            const password = document.getElementById('authPassword').value;
 
-        // Confirm new conversation
-        function confirmNewConversation() {
-            const title = document.getElementById('conversationNameInput').value.trim();
-            if (!title) {
-                alert('Por favor ingresa un nombre para la conversación');
+            if (!username || !password) {
+                alert('Por favor completa todos los campos');
                 return;
             }
 
-            const conversation = {
-                id: generateId(),
-                title: title,
-                messages: []
-            };
-            conversations.push(conversation);
-            saveConversations();
-            closeNewConversationModal();
-            renderConversations();
-            selectConversation(conversation.id);
-        }
-
-        // Handle modal Enter key
-        function handleModalKeyPress(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                confirmNewConversation();
+            if (authMode === 'register') {
+                registerUser(username, password);
+            } else {
+                loginUser(username, password);
             }
         }
 
-        // Select conversation
-        function selectConversation(id) {
-            currentConversationId = id;
-            renderConversations();
+        // Register user
+        function registerUser(username, password) {
+            if (users.find(u => u.username === username)) {
+                alert('El usuario ya existe');
+                return;
+            }
+
+            const newUser = { id: Date.now().toString(), username, password };
+            users.push(newUser);
+            saveUsers();
+            currentUser = newUser;
+            localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
+            authMode = 'login';
+            showChatScreen();
+        }
+
+        // Login user
+        function loginUser(username, password) {
+            const user = users.find(u => u.username === username && u.password === password);
+            if (!user) {
+                alert('Usuario o contraseña incorrectos');
+                return;
+            }
+
+            currentUser = user;
+            localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
+            showChatScreen();
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+                currentUser = null;
+                currentChatWith = null;
+                localStorage.removeItem(CURRENT_USER_KEY);
+                authMode = 'login';
+                document.getElementById('authUsername').value = '';
+                document.getElementById('authPassword').value = '';
+                showAuthScreen();
+            }
+        }
+
+        // Show auth screen
+        function showAuthScreen() {
+            document.getElementById('authScreen').classList.remove('hidden');
+            document.getElementById('chatScreen').classList.add('hidden');
+        }
+
+        // Show chat screen
+        function showChatScreen() {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('chatScreen').classList.remove('hidden');
+            document.getElementById('currentUserDisplay').textContent = currentUser.username;
+            renderContacts();
             renderMessages();
         }
 
-        // Delete current conversation
-        function deleteCurrentConversation() {
-            if (!currentConversationId) return;
-            if (confirm('¿Estás seguro de que deseas eliminar esta conversación?')) {
-                conversations = conversations.filter(c => c.id !== currentConversationId);
-                currentConversationId = null;
-                saveConversations();
-                renderConversations();
-                renderMessages();
-            }
-        }
-
-        // Render conversations list
-        function renderConversations() {
-            const list = document.getElementById('conversationsList');
+        // Render contacts
+        function renderContacts() {
+            const list = document.getElementById('contactsList');
             list.innerHTML = '';
 
-            conversations.forEach(conv => {
-                const item = document.createElement('div');
-                item.className = 'conversation-item';
-                if (conv.id === currentConversationId) {
-                    item.classList.add('active');
+            users.forEach(user => {
+                if (user.id !== currentUser.id) {
+                    const item = document.createElement('div');
+                    item.className = 'contact-item';
+                    if (currentChatWith && currentChatWith.id === user.id) {
+                        item.classList.add('active');
+                    }
+                    item.innerHTML = `
+                        <div>${user.username}</div>
+                        <div class="status online">En línea</div>
+                    `;
+                    item.onclick = () => selectContact(user);
+                    list.appendChild(item);
                 }
-                item.textContent = conv.title;
-                item.onclick = () => selectConversation(conv.id);
-                list.appendChild(item);
             });
+        }
+
+        // Select contact to chat
+        function selectContact(contact) {
+            currentChatWith = contact;
+            renderContacts();
+            renderMessages();
+        }
+
+        // Generate conversation ID
+        function getConversationId(user1Id, user2Id) {
+            const ids = [user1Id, user2Id].sort();
+            return ids[0] + '_' + ids[1];
+        }
+
+        // Get or create conversation
+        function getConversation(otherUserId) {
+            const convId = getConversationId(currentUser.id, otherUserId);
+            let conv = conversations.find(c => c.id === convId);
+
+            if (!conv) {
+                conv = {
+                    id: convId,
+                    user1Id: currentUser.id,
+                    user2Id: otherUserId,
+                    messages: []
+                };
+                conversations.push(conv);
+                saveConversations();
+            }
+
+            return conv;
         }
 
         // Render messages
@@ -620,32 +689,27 @@
             const container = document.getElementById('messagesContainer');
             const header = document.getElementById('chatTitle');
             const inputArea = document.getElementById('inputArea');
-            const deleteBtn = document.getElementById('deleteBtn');
 
-            if (!currentConversationId) {
+            if (!currentChatWith) {
                 container.innerHTML = `
-                    <div class="no-conversation">
-                        <p>� Bienvenido a ChatFlow</p>
-                        <small>Selecciona o crea una conversación para comenzar</small>
+                    <div class="no-contact">
+                        <p>👋 Selecciona un contacto</p>
+                        <small>Elige una persona de la lista para comenzar a chatear</small>
                     </div>
                 `;
                 inputArea.style.display = 'none';
-                deleteBtn.style.display = 'none';
                 return;
             }
 
-            const conversation = conversations.find(c => c.id === currentConversationId);
-            if (!conversation) return;
-
-            header.textContent = conversation.title;
-            deleteBtn.style.display = 'block';
+            const conversation = getConversation(currentChatWith.id);
+            header.textContent = currentChatWith.username;
             inputArea.style.display = 'flex';
 
             const messages = conversation.messages;
             if (messages.length === 0) {
                 container.innerHTML = `
-                    <div class="no-conversation">
-                        <p>� Inicio de conversación</p>
+                    <div class="no-contact">
+                        <p>💭 Inicio de conversación</p>
                         <small>Sé el primero en escribir un mensaje</small>
                     </div>
                 `;
@@ -655,22 +719,22 @@
                 container.classList.remove('empty');
                 messages.forEach(msg => {
                     const msgEl = document.createElement('div');
-                    msgEl.className = `message ${msg.sender === currentUsername ? 'own' : 'other'}`;
+                    msgEl.className = `message ${msg.senderId === currentUser.id ? 'own' : 'other'}`;
                     const time = new Date(msg.timestamp).toLocaleTimeString('es-ES', {
                         hour: '2-digit',
                         minute: '2-digit'
                     });
+                    const senderName = msg.senderId === currentUser.id ? 'Tú' : currentChatWith.username;
                     msgEl.innerHTML = `
                         <div>
-                            <div class="message-content">${escapeHtml(msg.text)}</div>
-                            <div class="message-time">${msg.sender} • ${time}</div>
+                            <div class="message-bubble">${escapeHtml(msg.text)}</div>
+                            <div class="message-time">${senderName} • ${time}</div>
                         </div>
                     `;
                     container.appendChild(msgEl);
                 });
             }
 
-            // Scroll to bottom
             container.scrollTop = container.scrollHeight;
         }
 
@@ -679,15 +743,13 @@
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
 
-            if (!text || !currentConversationId) return;
+            if (!text || !currentChatWith) return;
 
-            const conversation = conversations.find(c => c.id === currentConversationId);
-            if (!conversation) return;
-
+            const conversation = getConversation(currentChatWith.id);
             conversation.messages.push({
-                id: generateId(),
+                id: Date.now().toString(),
+                senderId: currentUser.id,
                 text: text,
-                sender: currentUsername,
                 timestamp: new Date().toISOString()
             });
 
@@ -716,7 +778,7 @@
             return text.replace(/[&<>"']/g, m => map[m]);
         }
 
-        // Start the app
+        // Start app
         init();
     </script>
 </body>
