@@ -110,6 +110,23 @@
             text-decoration: underline;
         }
 
+        .auth-users {
+            margin-top: 15px;
+            font-size: 13px;
+            color: #777;
+            background: #f5f7ff;
+            padding: 12px 15px;
+            border-radius: 10px;
+            text-align: left;
+            line-height: 1.5;
+        }
+
+        .auth-users strong {
+            display: block;
+            margin-bottom: 6px;
+            color: #333;
+        }
+
         /* Chat Screen */
         .chat-screen {
             display: flex;
@@ -287,7 +304,7 @@
             display: flex;
             gap: 10px;
             animation: slideIn 0.3s ease;
-            word-wrap: break-word;
+            align-items: flex-end;
         }
 
         @keyframes slideIn {
@@ -306,12 +323,13 @@
         }
 
         .message-bubble {
-            max-width: 60%;
+            display: inline-block;
+            max-width: 80%;
             padding: 12px 15px;
             border-radius: 10px;
-            word-wrap: break-word;
+            word-break: break-word;
             white-space: pre-wrap;
-            overflow-wrap: break-word;
+            overflow-wrap: anywhere;
         }
 
         .message.other .message-bubble {
@@ -432,6 +450,11 @@
             <div class="auth-toggle">
                 ¿No tienes cuenta? <button onclick="toggleAuthMode()">Crear una</button>
             </div>
+
+            <div class="auth-users" id="authUsers">
+                <strong>Usuarios registrados</strong>
+                <span id="authUsersList">No hay usuarios registrados.</span>
+            </div>
         </div>
     </div>
 
@@ -504,21 +527,23 @@
         // Load users from storage
         function loadUsers() {
             const saved = localStorage.getItem(USERS_KEY);
-            if (saved) {
-                users = JSON.parse(saved);
-            } else {
-                users = [
-                    { id: '1', username: 'Alice', password: 'alice123' },
-                    { id: '2', username: 'Bob', password: 'bob123' },
-                    { id: '3', username: 'Carlos', password: 'carlos123' }
-                ];
-                saveUsers();
-            }
+            users = saved ? JSON.parse(saved) : [];
+            updateAuthUserList();
         }
 
         // Save users
         function saveUsers() {
             localStorage.setItem(USERS_KEY, JSON.stringify(users));
+            updateAuthUserList();
+        }
+
+        function updateAuthUserList() {
+            const list = document.getElementById('authUsersList');
+            if (!list) return;
+            const names = users.length ? users.map(user => user.username) : [];
+            list.textContent = names.length
+                ? names.join(', ')
+                : 'No hay usuarios registrados.';
         }
 
         // Load conversations
@@ -619,6 +644,7 @@
         function showAuthScreen() {
             document.getElementById('authScreen').classList.remove('hidden');
             document.getElementById('chatScreen').classList.add('hidden');
+            updateAuthUserList();
         }
 
         // Show chat screen
@@ -635,20 +661,30 @@
             const list = document.getElementById('contactsList');
             list.innerHTML = '';
 
-            users.forEach(user => {
-                if (user.id !== currentUser.id) {
-                    const item = document.createElement('div');
-                    item.className = 'contact-item';
-                    if (currentChatWith && currentChatWith.id === user.id) {
-                        item.classList.add('active');
-                    }
-                    item.innerHTML = `
-                        <div>${user.username}</div>
-                        <div class="status online">En línea</div>
-                    `;
-                    item.onclick = () => selectContact(user);
-                    list.appendChild(item);
+            const otherUsers = users.filter(user => user.id !== currentUser.id);
+            if (otherUsers.length === 0) {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'contact-item';
+                placeholder.style.cursor = 'default';
+                placeholder.style.background = '#f7f7f7';
+                placeholder.style.color = '#999';
+                placeholder.textContent = 'No hay otros usuarios registrados. Crea otra cuenta o inicia sesión con otro usuario.';
+                list.appendChild(placeholder);
+                return;
+            }
+
+            otherUsers.forEach(user => {
+                const item = document.createElement('div');
+                item.className = 'contact-item';
+                if (currentChatWith && currentChatWith.id === user.id) {
+                    item.classList.add('active');
                 }
+                item.innerHTML = `
+                    <div>${user.username}</div>
+                    <div class="status online">En línea</div>
+                `;
+                item.onclick = () => selectContact(user);
+                list.appendChild(item);
             });
         }
 
