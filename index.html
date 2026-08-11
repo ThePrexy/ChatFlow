@@ -265,6 +265,58 @@
             background: #5568c9;
         }
 
+        .contact-suggestions {
+            padding: 12px 15px;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .contact-suggestions.hidden {
+            display: none;
+        }
+
+        .contact-suggestion-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            background: #f0f4ff;
+            border: 1px solid #dfe4ff;
+            cursor: default;
+        }
+
+        .contact-suggestion-item .suggestion-name {
+            font-size: 14px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .contact-suggestion-item button {
+            padding: 8px 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .contact-suggestion-item button:hover {
+            background: #5568c9;
+        }
+
+        .contact-suggestion-empty {
+            font-size: 13px;
+            color: #666;
+            padding: 8px 0;
+        }
+
         .contacts-list {
             flex: 1;
             overflow-y: auto;
@@ -520,9 +572,10 @@
             <div class="contact-search">
                 <label for="contactSearchInput">Buscar usuario por nombre</label>
                 <div class="contact-search-row">
-                    <input type="text" id="contactSearchInput" placeholder="Nombre de usuario" />
+                    <input type="text" id="contactSearchInput" placeholder="Nombre de usuario" oninput="updateContactSuggestions()" />
                     <button onclick="handleAddContact()">Agregar</button>
                 </div>
+                <div class="contact-suggestions hidden" id="contactSuggestions"></div>
             </div>
             <div class="contacts-list" id="contactsList"></div>
         </div>
@@ -570,6 +623,7 @@
             loadUsers();
             loadConversations();
             checkLoggedIn();
+            window.addEventListener('storage', handleStorageChange);
         }
 
         // Load users from storage
@@ -582,6 +636,9 @@
         // Save users
         function saveUsers() {
             localStorage.setItem(USERS_KEY, JSON.stringify(users));
+            if (currentUser) {
+                localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
+            }
             updateAuthUserList();
         }
 
@@ -676,14 +733,12 @@
             showChatScreen();
         }
 
-        function handleAddContact() {
+        function handleAddContact(userId) {
             const query = document.getElementById('contactSearchInput').value.trim();
-            if (!query) {
-                alert('Ingresa el nombre de usuario que deseas agregar');
-                return;
-            }
+            const target = userId
+                ? users.find(u => u.id === userId)
+                : users.find(u => u.username.toLowerCase() === query.toLowerCase());
 
-            const target = users.find(u => u.username.toLowerCase() === query.toLowerCase());
             if (!target) {
                 alert('No existe ningún usuario con ese nombre.');
                 return;
@@ -707,8 +762,28 @@
 
             saveUsers();
             document.getElementById('contactSearchInput').value = '';
+            updateContactSuggestions();
             renderContacts();
             alert(`Usuario ${target.username} agregado correctamente.`);
+        }
+
+        function handleStorageChange(event) {
+            if (!event.key) return;
+
+            if (event.key === USERS_KEY) {
+                loadUsers();
+                if (currentUser) {
+                    currentUser = users.find(u => u.id === currentUser.id) || currentUser;
+                    renderContacts();
+                }
+            }
+
+            if (event.key === CONVERSATIONS_KEY) {
+                loadConversations();
+                if (currentChatWith) {
+                    renderMessages();
+                }
+            }
         }
 
         // Logout
@@ -898,6 +973,40 @@
                 event.preventDefault();
                 sendMessage();
             }
+        }
+
+        // Update contact suggestions while typing
+        function updateContactSuggestions() {
+            const query = document.getElementById('contactSearchInput').value.trim().toLowerCase();
+            const suggestionsEl = document.getElementById('contactSuggestions');
+            if (!query) {
+                suggestionsEl.classList.add('hidden');
+                suggestionsEl.innerHTML = '';
+                return;
+            }
+
+            const matchingUsers = users.filter(user =>
+                user.username.toLowerCase().includes(query) && user.id !== currentUser.id
+            );
+
+            if (!matchingUsers.length) {
+                suggestionsEl.classList.remove('hidden');
+                suggestionsEl.innerHTML = '<div class="contact-suggestion-empty">No se encontraron usuarios con ese nombre.</div>';
+                return;
+            }
+
+            suggestionsEl.classList.remove('hidden');
+            suggestionsEl.innerHTML = matchingUsers.map(user => {
+                const alreadyContact = currentUser.contacts && currentUser.contacts.includes(user.id);
+                return `
+                    <div class="contact-suggestion-item">
+                        <div class="suggestion-name">${user.username}</div>
+                        <button onclick="handleAddContact('${user.id}')" ${alreadyContact ? 'disabled' : ''}>
+                            ${alreadyContact ? 'Agregado' : 'Agregar'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
         }
 
         // Escape HTML
