@@ -724,7 +724,11 @@
         function loginUser(username, password) {
             const user = users.find(u => u.username === username && u.password === password);
             if (!user) {
-                alert('Usuario o contraseña incorrectos');
+                if (!users.length) {
+                    alert('No hay usuarios registrados en este navegador. Esta app guarda cuentas solo en localStorage por dispositivo. Crea una cuenta aquí o usa el dispositivo donde la cuenta fue registrada.');
+                } else {
+                    alert('Usuario o contraseña incorrectos.');
+                }
                 return;
             }
 
